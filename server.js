@@ -14,10 +14,10 @@ const { getAnimeByAnilistId, getEpisodeUrls } = require("./src/anicli");
 const app = express();
 app.use(cors());
 app.use(express.static("public")); // Serve static HTML from public/
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+//   next();
+// });
 
 // ------------------- MANIFEST -------------------
 const manifest = {
@@ -111,6 +111,21 @@ app.get("/:anilistToken/manifest.json", (req, res) => {
 
 // Catalog
 
+app.get("/catalog/:type/:id.json", async (req, res) => {
+  try {
+    const { type, id } = req.params;
+
+    if (id === "anilist_planning") {
+      return res.json({ metas: [] });
+    } else if (id === "anilist_watching") {
+      return res.json({ metas: [] });
+    }
+  } catch (err) {
+    console.error("Catalog error:", err);
+    res.status(500).json({ metas: [] });
+  }
+});
+
 app.get("/:anilistToken/catalog/:type/:id.json", async (req, res) => {
   try {
     const { anilistToken, type, id } = req.params;
@@ -154,6 +169,17 @@ app.get("/:anilistToken/meta/:type/:id.json", async (req, res) => {
   try {
     const { anilistToken, id } = req.params;
     const meta = await getAnimeDetails(id, anilistToken);
+    res.json({ meta });
+  } catch (err) {
+    console.error("Meta error:", err);
+    res.status(500).json({ meta: {} });
+  }
+});
+
+app.get("/meta/:type/:id.json", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const meta = await getAnimeDetails(id);
     res.json({ meta });
   } catch (err) {
     console.error("Meta error:", err);
@@ -232,6 +258,44 @@ app.get("/:anilistToken/stream/:type/:id.json", async (req, res) => {
         }
       }
     }
+
+    res.json({ streams });
+  } catch (err) {
+    console.error("Stream error:", err);
+    res.status(500).json({ streams: [] });
+  }
+});
+
+app.get("/stream/:type/:id.json", async (req, res) => {
+  try {
+    const { anilistToken, id } = req.params;
+
+    if (!id.startsWith("ani_")) return res.json({ streams: [] });
+
+    const [_, animeId, titleRaw, episodeRaw] = id.split("_");
+    const title = titleRaw?.replace(/[!?]/g, "");
+    const episodeNumber = episodeRaw || 1;
+
+    const privateId = await getAnimeByAnilistId(animeId, title, anilistToken);
+    const sources = await getEpisodeUrls(privateId.id, episodeNumber);
+
+    const streams = sources.map((source) => ({
+      url: source.url,
+      name: "AnilistStream",
+      description: `Source: ${source.source} - Quality: ${source.quality}`,
+      subtitles: source.subtitles
+        ? [{ id: "eng", lang: "English", url: source.subtitles }]
+        : [],
+      behaviorHints: {
+        notWebReady: true,
+        proxyHeaders: {
+          request: {
+            Referer: source.referrer,
+            "User-Agent": source["user-agent"],
+          },
+        },
+      },
+    }));
 
     res.json({ streams });
   } catch (err) {
