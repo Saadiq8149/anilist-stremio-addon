@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AnilistStream Configuration</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #111;
+        color: #eee;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      h1 {
+        color: #ffcc66;
+      }
+      form {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        width: 320px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        margin-bottom: 16px;
+        border: none;
+        border-radius: 5px;
+      }
+      button {
+        background: #ffcc66;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      button:hover {
+        background: #ffdd88;
+      }
+      p {
+        color: #aaa;
+        font-size: 14px;
+      }
+      a {
+        color: #ffcc66;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>AnilistStream Configuration</h1>
+    <form id="configForm">
+      <label for="token">Anilist Access Token:</label>
+      <input
+        type="text"
+        id="token"
+        name="anilist_access_token"
+        placeholder="Enter token here"
+        required
+      />
+      <button id="installBtn" type="button">Install in Stremio</button>
+    </form>
+    <p>
+      Get your token from
+      <a
+        id="oauthLink"
+        href="https://anilist.co/api/v2/oauth/authorize?client_id=31463&response_type=token"
+        target="_blank"
+        >Anilist OAuth</a
+      >
+    </p>
+
+    <script>
+      (function () {
+        // Detect #access_token from OAuth redirect
+        const hash = window.location.hash;
+        if (hash && hash.includes("access_token=")) {
+          const params = new URLSearchParams(hash.substring(1));
+          const token = params.get("access_token");
+          if (token)
+            window.location.href =
+              "/configure?anilist_access_token=" + encodeURIComponent(token);
+        }
+
+        // If token from query or path exists, prefill
+        const params = new URLSearchParams(window.location.search);
+        const queryToken = params.get("anilist_access_token");
+        const pathMatch = window.location.pathname.match(
+          /^\/([^/]+)\/configure\.json$/
+        );
+        const pathToken = pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+
+        const tokenInput = document.getElementById("token");
+        if (queryToken) tokenInput.value = queryToken;
+        else if (pathToken) tokenInput.value = pathToken;
+
+        // Install button logic
+        document.getElementById("installBtn").addEventListener("click", () => {
+          if (!tokenInput.reportValidity()) return;
+          const token = tokenInput.value.trim();
+          if (!token) return alert("Enter your token first!");
+
+          const stremioUrl =
+            "stremio://miraitv.stremio.edmit.in" +
+            "/" +
+            encodeURIComponent(token) +
+            "/manifest.json";
+          window.location.href = stremioUrl;
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "stremio-addon-sdk": "1.1.x"
+    "stremio-addon-sdk": "^1.6.10"
   }
 }
