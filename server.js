@@ -1,7 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { searchAnime, getAnimeDetails } = require("./src/anilist");
+const {
+  searchAnime,
+  getAnimeDetails,
+  getUserWatchStatus,
+  updateUserWatchList,
+} = require("./src/anilist");
 const { getAnimeByAnilistId, getEpisodeUrls } = require("./src/anicli");
 
 const app = express();
@@ -151,6 +156,45 @@ app.get("/:anilistToken/stream/:type/:id.json", async (req, res) => {
         },
       },
     }));
+
+    if (anilistToken && streams.length > 0) {
+      const userWatchStatus = await getUserWatchStatus(anilistToken, animeId);
+      if (userWatchStatus) {
+        switch (userWatchStatus) {
+          case "PLANNING":
+            await updateUserWatchList(
+              anilistToken,
+              animeId,
+              episodeNumber,
+              "CURRENT"
+            );
+            break;
+          case "COMPLETED":
+            await updateUserWatchList(
+              anilistToken,
+              animeId,
+              episodeNumber,
+              "REPEATING"
+            );
+            break;
+          case "REPEATING":
+            await updateUserWatchList(
+              anilistToken,
+              animeId,
+              episodeNumber,
+              "REPEATING"
+            );
+            break;
+          default:
+            await updateUserWatchList(
+              anilistToken,
+              animeId,
+              episodeNumber,
+              "CURRENT"
+            );
+        }
+      }
+    }
 
     res.json({ streams });
   } catch (err) {

@@ -106,4 +106,59 @@ async function getAnimeDetails(animeId) {
   };
 }
 
-module.exports = { searchAnime, getAnimeDetails };
+async function getUserWatchStatus(anilistToken, anilistId) {
+  const query = `
+    query ($id: Int!) {
+      MediaList(mediaId: $id, type: ANIME) {
+        status
+      }
+    }`;
+  const variables = { id: parseInt(anilistId) };
+  const response = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${anilistToken}`,
+    },
+    body: JSON.stringify({
+      query: query,
+      variables: variables,
+    }),
+  });
+  const data = await response.json();
+  return data.data.MediaList ? data.data.MediaList.status : null;
+}
+
+async function updateUserWatchList(anilistToken, anilistId, status, progress) {
+  const mutation = `  
+    mutation ($mediaId: Int!, $status: MediaListStatus!, $progress: Int!) {
+      SaveMediaList(mediaId: $mediaId, status: $status, progress: $progress) {
+        id
+        status
+        progress
+      }
+    }`;
+  const variables = { mediaId: parseInt(anilistId), status, progress };
+  const response = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${anilistToken}`,
+    },
+    body: JSON.stringify({
+      query: mutation,
+      variables: variables,
+    }),
+  });
+  const data = await response.json();
+  return data.data.SaveMediaList || null;
+}
+
+module.exports = {
+  searchAnime,
+  getAnimeDetails,
+  getUserWatchStatus,
+  updateUserWatchList,
+};
