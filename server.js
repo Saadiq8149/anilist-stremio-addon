@@ -59,6 +59,7 @@ const manifest = {
   name: "AnilistStream",
   description: "Streaming anime and Anilist sync",
   idPrefixes: ["ani_"],
+  logo: "",
   behaviorHints: {
     configurable: true,
     configurationRequired: false,
@@ -78,6 +79,10 @@ const manifest = {
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/logo.png", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "logo.png"));
 });
 
 // Serve configuration page (no token)
