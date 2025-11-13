@@ -166,7 +166,23 @@ app.get("/:anilistToken/catalog/:type/:id/:extra.json", async (req, res) => {
       extra && extra.startsWith("search=")
         ? decodeURIComponent(extra.split("=")[1])
         : "";
-    const anime = await searchAnime(searchQuery, anilistToken);
+    const anime = await searchAnime(searchQuery);
+    res.json({ metas: anime });
+  } catch (err) {
+    console.error("Catalog error:", err);
+    res.status(500).json({ metas: [] });
+  }
+});
+
+app.get("/catalog/:type/:id/:extra.json", async (req, res) => {
+  try {
+    const { type, id, extra } = req.params;
+
+    const searchQuery =
+      extra && extra.startsWith("search=")
+        ? decodeURIComponent(extra.split("=")[1])
+        : "";
+    const anime = await searchAnime(searchQuery);
     res.json({ metas: anime });
   } catch (err) {
     console.error("Catalog error:", err);
