@@ -326,13 +326,25 @@ app.get("/poster/:id.png", async (req, res) => {
     const episodes = parseInt(req.query.episodes || 0);
     const nextAirUnix = parseInt(req.query.nextAir || 0);
 
+    console.log(`[POSTER] ID: ${req.params.id}`);
+    console.log(
+      `[POSTER] Status: ${status}, Progress: ${progress}/${episodes}`
+    );
+    console.log(`[POSTER] Next Air Unix: ${nextAirUnix}`);
+
     const img = await fetch(original).then((r) => r.arrayBuffer());
     const posterBuffer = Buffer.from(img);
+    console.log(`[POSTER] Fetched image, size: ${posterBuffer.length} bytes`);
 
     let composite = sharp(posterBuffer);
 
     if (status === "RELEASING") {
+      console.log(`[POSTER] Status is RELEASING`);
+
       if (progress < episodes) {
+        console.log(
+          `[POSTER] Progress (${progress}) < Episodes (${episodes}), showing NEW EP OUT`
+        );
         const newEpBadgeSvg = Buffer.from(`
           <svg xmlns="http://www.w3.org/2000/svg" width="200" height="60" viewBox="0 0 200 80" fill="none">
             <rect x="0" y="10" width="200" height="60" rx="20" fill="#5953db"/>
@@ -355,10 +367,16 @@ app.get("/poster/:id.png", async (req, res) => {
             gravity: "south",
           },
         ]);
+        console.log(`[POSTER] NEW EP OUT badge added`);
       } else {
         const now = Math.floor(Date.now() / 1000);
         const diffDays = Math.ceil((nextAirUnix - now) / 86400);
+        console.log(
+          `[POSTER] Progress (${progress}) >= Episodes (${episodes}), Days until next: ${diffDays}`
+        );
+
         if (diffDays > 0) {
+          console.log(`[POSTER] Showing EP IN ${diffDays} DAYS badge`);
           const nextEpBadgeSvg = Buffer.from(`
             <svg xmlns="http://www.w3.org/2000/svg" width="220" height="60" viewBox="0 0 200 80" fill="none">
               <rect x="-10" y="10" width="220" height="60" rx="20" fill="#5953db"/>
@@ -381,15 +399,24 @@ app.get("/poster/:id.png", async (req, res) => {
               gravity: "south",
             },
           ]);
+          console.log(`[POSTER] EP IN DAYS badge added`);
+        } else {
+          console.log(`[POSTER] No badge shown (diffDays <= 0)`);
         }
       }
+    } else {
+      console.log(
+        `[POSTER] Status is not RELEASING (${status}), no badges shown`
+      );
     }
 
     const buffer = await composite.png({ compressionLevel: 8 }).toBuffer();
+    console.log(`[POSTER] Final image generated, size: ${buffer.length} bytes`);
+
     res.setHeader("Content-Type", "image/png");
     res.send(buffer);
   } catch (err) {
-    console.error("Poster-gen error:", err);
+    console.error("[POSTER] Error:", err.message);
     res.status(500).json({ error: "Failed to generate poster" });
   }
 });
