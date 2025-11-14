@@ -474,7 +474,7 @@ case "$search" in
             [ -z "$query" ] && exit 1
         fi
         
-        # Treat query as _id directly
+        # Treat query as _id directly and check if it exists
         id="$query"
         ep_list=$(episodes_list "$id")
         [ -z "$ep_list" ] && exit 1
