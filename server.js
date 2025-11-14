@@ -18,63 +18,6 @@ const sharp = require("sharp");
 app.use(cors());
 app.use(express.static("public"));
 
-// Manifest.json
-const manifest = {
-  id: "community.AnilistStream",
-  version: "0.0.2",
-  catalogs: [
-    {
-      type: "series",
-      id: "anilist",
-      name: "Anime",
-      extra: [
-        {
-          name: "search",
-          isRequired: true,
-        },
-      ],
-    },
-    {
-      type: "series",
-      id: "anilist_watching",
-      name: "Watching Now",
-    },
-    {
-      type: "series",
-      id: "anilist_planning",
-      name: "Planning to Watch",
-    },
-  ],
-  resources: [
-    "catalog",
-    {
-      name: "meta",
-      types: ["series"],
-      idPrefixes: ["ani_"],
-    },
-    "stream",
-    "subtitles",
-  ],
-  types: ["series", "movie"],
-  name: "AnilistStream",
-  description: "Streaming anime and Anilist sync",
-  idPrefixes: ["ani_"],
-  logo: "https://miraitv.stremio.edmit.in/logo.png",
-  behaviorHints: {
-    configurable: true,
-    configurationRequired: false,
-  },
-  config: [
-    {
-      key: "anilist_access_token",
-      type: "text",
-      title:
-        'Your Anilist access token. Get it by visiting <a href="https://anilist.co/api/v2/oauth/authorize?client_id=31463&response_type=token" target="_blank" rel="noopener noreferrer">Anilist OAuth Authorize</a> and copying the token from the Box.',
-      required: true,
-    },
-  ],
-};
-
 // Middleware to log requests
 app.use((req, res, next) => {
   const start = Date.now();
@@ -111,17 +54,10 @@ app.get(
   }
 );
 
-// Manifest.json
-app.get("/manifest.json", (req, res) => {
+app.get(["/:anilistToken/manifest.json", "/manifest.json"], (req, res) => {
   res.setHeader("Cache-Control", "max-age=604800");
   res.setHeader("Content-Type", "application/json");
-  res.json(manifest);
-});
-
-app.get("/:anilistToken/manifest.json", (req, res) => {
-  res.setHeader("Cache-Control", "max-age=604800");
-  res.setHeader("Content-Type", "application/json");
-  res.json(manifest);
+  res.sendFile(path.join(__dirname, "public", "manifest.json"));
 });
 
 // Catalog
