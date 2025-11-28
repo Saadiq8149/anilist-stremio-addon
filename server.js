@@ -25,8 +25,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const ms = Date.now() - start;
     console.log(
-      `${req.method} ${req.originalUrl.slice(0, 40)} - ${
-        res.statusCode
+      `${req.method} ${req.originalUrl.slice(0, 40)} - ${res.statusCode
       } (${ms}ms)`
     );
   });

@@ -1,3 +1,5 @@
+const { getAnimeByAnilistId } = require("./anicli");
+
 const BASE_URL = "https://graphql.anilist.co";
 
 async function fetchAnilist(query, variables) {
@@ -82,13 +84,82 @@ async function getAnimeDetails(animeId) {
     : "";
   const title = anime.title.english || anime.title.romaji || anime.title.native;
 
+
+  const allMangaId = (await getAnimeByAnilistId(anime.id, title)).id;
+
+  const allMangaQuery = `
+    query($showId:String!, $episodeNumStart:Float!, $episodeNumEnd:Float!) {
+      episodeInfos(
+        showId: $showId,
+        episodeNumStart: $episodeNumStart,
+        episodeNumEnd: $episodeNumEnd
+      ) {
+        episodeIdNum
+        notes
+        description
+        thumbnails
+        uploadDates
+      }
+    }
+  `;
+
+  const allMangaVariables = {
+    showId: allMangaId,
+    episodeNumStart: 1,
+    episodeNumEnd: episodeCount,
+  };
+
+  let allMangaData;
+  try {
+    const allMangaResponse = await fetch("https://api.allanime.day/api", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Referer": "https://allmanga.to",
+        "User-Agent": "Mozilla/5.0",
+      },
+      body: JSON.stringify({
+        query: allMangaQuery,
+        variables: allMangaVariables,
+      }),
+    });
+
+    allMangaData = await allMangaResponse.json();
+  } catch (e) {
+    console.error("AllAnime Error →", e);
+    allMangaData = { data: { episodeInfos: [] } };
+  }
+
+  const episodeInfos = allMangaData?.data?.episodeInfos ?? [];
+
+
   for (var i = 0; i < episodeCount; i++) {
+
+    var ep;
+    var thumbnail = "";
+
+    for (var info of episodeInfos) {
+      if (info.episodeIdNum === i + 1) {
+        ep = info;
+        for (var t of info.thumbnails) {
+          if (t.includes("https")) {
+            thumbnail = t;
+            break;
+          } else {
+            thumbnail = `https://api.allmanga.to${t}`
+          }
+        }
+        break;
+      }
+    }
+
     videos.push({
       id: `ani_${anime.id}_${title.replace("?", "").replace("!", "")}_${i + 1}`,
-      title: `Episode ${i + 1}`,
+      title: ep.notes ? `${i + 1}. ${ep.notes.split("<")[0]}` : `Episode ${i + 1}`,
       episode: episodeCount - i + 1,
       type: "episode",
       available: true,
+      thumbnail: thumbnail,
     });
   }
   return {
@@ -351,11 +422,11 @@ async function getWatchingAnime(anilistToken) {
         poster:
           anime.status === "RELEASING"
             ? `https://miraitv.stremio.edmit.in/poster/${anime.id}.png` +
-              `?url=${encodeURIComponent(anime.coverImage.large)}` +
-              `&status=${anime.status}` +
-              `&progress=${entry.progress || 0}` +
-              `&episodes=${anime.nextAiringEpisode?.episode - 1 || 0}` +
-              `&nextAir=${anime.nextAiringEpisode?.airingAt || 0}`
+            `?url=${encodeURIComponent(anime.coverImage.large)}` +
+            `&status=${anime.status}` +
+            `&progress=${entry.progress || 0}` +
+            `&episodes=${anime.nextAiringEpisode?.episode - 1 || 0}` +
+            `&nextAir=${anime.nextAiringEpisode?.airingAt || 0}`
             : anime.coverImage.large,
 
         format: anime.format,

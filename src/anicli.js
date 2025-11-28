@@ -78,10 +78,11 @@ function runAniCli(args) {
     let chunks = [];
 
     proc.stdout.on("data", (d) => chunks.push(d.toString()));
-    proc.stderr.on("data", (d) => {});
+    proc.stderr.on("data", (d) => { });
     proc.on("close", () => resolve(getValidLines(chunks)));
   });
 }
+
 async function getEpisodeUrls(allAnimeId, episodeNumber) {
   const streams = { sub: [], dub: [] };
   let subs = null;
@@ -148,14 +149,6 @@ async function getSubtitles(allAnimeId, episodeNumber) {
     }
   }
 }
-
-// async function test() {
-//   const id = await getAnimeByAnilistId(20, "Naruto");
-//   const streams = await getEpisodeUrls(id.id, 1);
-//   console.log(streams);
-// }
-
-// test();
 
 module.exports = {
   searchAnime,

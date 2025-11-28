@@ -438,17 +438,17 @@ done
 [ "$use_external_menu" = "1" ] && multi_selection_flag="${ANI_CLI_MULTI_SELECTION:-"-multi-select"}"
 [ "$external_menu_normal_window" = "1" ] && external_menu_args="-normal-window"
 # printf "\33[2K\r\033[1;34mChecking dependencies...\033[0m\n"
-dep_ch "curl" "sed" "grep" || true
-[ "$skip_intro" = 1 ] && (dep_ch "ani-skip" || true)
-dep_ch "fzf" || true
-case "$player_function" in
-    debug) ;;
-    download) dep_ch "ffmpeg" "aria2c" ;;
-    android*) printf "\33[2K\rChecking of players on Android is disabled\n" ;;
-    *iSH*) printf "\33[2K\rChecking of players on iOS is disabled\n" ;;
-    flatpak_mpv) true ;; # handled out of band in where_mpv
-    *) dep_ch "$player_function" ;;
-esac
+# dep_ch "curl" "sed" "grep" || true
+# [ "$skip_intro" = 1 ] && (dep_ch "ani-skip" || true)
+# dep_ch "fzf" || true
+# case "$player_function" in
+#     debug) ;;
+#     download) dep_ch "ffmpeg" "aria2c" ;;
+#     android*) printf "\33[2K\rChecking of players on Android is disabled\n" ;;
+#     *iSH*) printf "\33[2K\rChecking of players on iOS is disabled\n" ;;
+#     flatpak_mpv) true ;; # handled out of band in where_mpv
+#     *) dep_ch "$player_function" ;;
+# esac
 
 # searching
 case "$search" in
