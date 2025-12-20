@@ -1,3 +1,10 @@
+<img
+  src="https://github.com/Saadiq8149/AnilistStream/blob/1cba2e46de9e627f1607d6782e2790193cdad501/public/logo.png"
+  alt="AnilistStream Logo"
+  width="256"
+  height="256"
+/>
+
 # AnilistStream — A Stremio addon for HTTP Anime streaming 
 
 **AnilistStream** is a Stremio addon that provides **HTTP-based anime streaming** (not torrents) with AniList integration for metadata and watch progress synchronization.
@@ -6,7 +13,8 @@ It is designed to work seamlessly inside Stremio while sourcing anime streams fr
 
 ---
 
-## Installation & Usage
+## Installation & Usa<img width="256" height="256" alt="logo" src="https://github.com/user-attachments/assets/7f5cef57-237e-4497-8863-83839c56e901" />
+ge
 
 Install the addon in Stremio by visiting:
 
